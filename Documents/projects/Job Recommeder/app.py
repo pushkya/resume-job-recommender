@@ -11,7 +11,7 @@ import pca as pc
 import matplotlib.pyplot as plt
 import word_sim
 import pickle
-st.set_option('deprecation.showPyplotGlobalUse', False)
+#st.set_option('deprecation.showPyplotGlobalUse', False)
 import re
 
 #Introduce App
