@@ -40,10 +40,11 @@ data = pd.DataFrame(zip(classes.T, prob.T), columns = ['jobs', 'probability'])
 
 #Plot probability of person belonging to a job class
 def plot_user_probability():
-    #plt.figure(figsize = (2.5,2.5))
-    plt.barh(data['jobs'], data['probability'], color = 'r')
-    plt.title('Percent Match of Job Type')
-    st.pyplot()
+    fig = plt.figure()
+    ax = fig.add_subplot()
+    ax.barh(data['jobs'], data['probability'], color = 'r')
+    ax.set_title('Percent Match of Job Type')
+    st.write(fig)
 
 #Plot where user fits in with other job clusters
 def plot_clusters():
