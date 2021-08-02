@@ -9,9 +9,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.tokenize import TreebankWordTokenizer
 from nltk.stem import PorterStemmer
 from sklearn.decomposition import TruncatedSVD
-#import re
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import accuracy_score
 import pickle
@@ -62,8 +63,6 @@ def return_topics(series, num_topics, no_top_words, model, vectorizer):
     def_model = model(num_topics)
     def_model = def_model.fit(doc_word)
     doc_topic = def_model.transform(doc_word)
-    #print('model components: ', def_model.components_[0].shape)
-    #print('doc_topic', doc_topic[0])
     model_components, topic_list = display_topics(def_model, vec.get_feature_names(), no_top_words)
     return def_model.components_, doc_topic, def_model, vec, topic_list#, topics
 
@@ -76,8 +75,6 @@ def process_data():
     jobs_df = pd.read_csv('newdata.csv')
     jobs_df = jobs_df.dropna()
     jobs_df = jobs_df.reset_index(drop = True)
-    #df = df[df.keyword!='marketing']
-    #jobs_df = pd.DataFrame(df, columns = ['Description', 'Job'])
 
     array, doc, topic_model, vec, topic_list  = return_topics(jobs_df['description'],20, 10, TruncatedSVD, TfidfVectorizer)
 
@@ -96,17 +93,14 @@ def predictive_modeling(df):
     X_tr, X_te, y_tr, y_te = train_test_split(X,y)
 
     #param_grid = {'n_estimators': [100,300, 400, 500, 600], 'max_depth': [3,7,9, 11]}
-    # search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5)
-    # search.fit(X_tr, y_tr)
-    # bp = search.best_params_
-    # print(bp)
-    #rfc = RandomForestClassifier(n_estimators = bp['n_estimators'], max_depth = bp['max_depth'])
-    rfc = RandomForestClassifier(n_estimators = 500, max_depth = 9)
-    rfc.fit(X_tr, y_tr)
-    print('acc: ', np.mean(cross_val_score(rfc, X_tr, y_tr, scoring = 'accuracy', cv=5)))
-    print('test_acc: ', accuracy_score(y_te, rfc.predict(X_te)))
-    print(rfc.predict(X_te))
-    return rfc
+    #rfc = RandomForestClassifier(n_estimators = 500, max_depth = 9)
+    #rfc.fit(X_tr, y_tr)
+    lo_re = LogisticRegression(n_jobs=3, C=1e5, max_iter=1000)
+    lo_re.fit(X_tr, y_tr)
+    print('acc: ', np.mean(cross_val_score(lo_re, X_tr, y_tr, scoring = 'accuracy', cv=5)))
+    print('test_acc: ', accuracy_score(y_te, lo_re.predict(X_te)))
+    print(lo_re.predict(X_te))
+    return lo_re
 
 def predict_resume(topic_model, model, resume):
     '''
@@ -120,21 +114,18 @@ def get_topic_classification_models():
     model_1 = predictive_modeling(jobs_df)
     return model, model_1, vec
 
-#topic_model, classifier, vec= get_topic_classification_models()
+topic_model, classifier1, vec= get_topic_classification_models()
 #topic_model_name = 'topic_model.sav'
-#classifier_name = 'classification_model.sav'
+classifier_name1 = 'classification_model1.sav'
 #vec_name = 'job_vec.sav'
 #pickle.dump(topic_model, open(topic_model_name, 'wb'))
-#pickle.dump(classifier, open(classifier_name, 'wb'))
+pickle.dump(classifier1, open(classifier_name1, 'wb'))
 #pickle.dump(vec, open(vec_name, 'wb'))
 
 def main(resume, topic_model, predictor, vec):
     '''
     run code that predicts resume
     '''
-    #jobs_df, model, vec , topic_list= process_data()
-    #model_1 = predictive_modeling(jobs_df)
-
     doc = tokenize_stem(resume)
     doc = vec.transform(doc)
     probabilities, classes = predict_resume(topic_model, predictor, doc)
