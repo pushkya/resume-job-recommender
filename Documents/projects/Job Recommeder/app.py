@@ -31,7 +31,7 @@ user_input = pd.Series(user_input)
 #load NLP + classification models
 
 topic_model = pickle.load(open('topic_model.sav', 'rb'))
-classifier = pickle.load(open('classification_model.sav', 'rb'))
+classifier = pickle.load(open('classification_model1.sav', 'rb'))
 vec = pickle.load(open('job_vec.sav', 'rb'))
 
 classes, prob = pda.main(user_input, topic_model, classifier, vec)
